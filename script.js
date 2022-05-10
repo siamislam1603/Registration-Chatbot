@@ -259,6 +259,8 @@ previousBtnLink.onclick=()=>{
         chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
         btnNext.className=btnNext.className.replace(' d-none','');
     }
+    if(steps===1 || steps===5) btnSkip.className=btnSkip.className.replace(' d-none','');
+    else if(!btnSkip.className.includes('d-none')) btnSkip.className+=' d-none';
     if(!steps) previousBtnLink.className='d-none';
     stepsMsgHandler();
 }
