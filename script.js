@@ -1,4 +1,4 @@
-let steps=0,timeout1,timeout2,timeout3;
+let steps=0,timeout1,timeout2;
 const incomingMsgs=['What is the name of your shop?',"Upload your shop's logo.","What is your full name? ","Would you like to keep username generated from shop name as user name or change it?","Now enter a strong password you can remember.","Enter your business phone number","Your account is almost ready. Which plan would you like to subscribe?","Where do you sell?"];
 const labels={0:'eg The Sharee Store', 2:'Full Name',3:'Username',4:'Password',5:'Phone Number'};
 const storedMsgs=['','','','Generated username','','','Starter','Facebook'];
@@ -49,9 +49,16 @@ const handleAttachment=(e)=>{
         uploadedFileEl.innerHTML=uploadedImgShow();
     }
 }
+const handleFormSubmit=(e)=>{
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if(!btnNext.disabled) handleNextBtnClick();
+}
 const inputField=(placeholder,type)=>`
-    <input type=${type} class="form-control form-control-sm register-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" value="${storedMsgs[steps]}">
-    <div class="text-danger text-sm"></div>`;
+    <form onsubmit='handleFormSubmit(event)'>
+        <input type=${type} class="form-control form-control-sm register-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" value="${storedMsgs[steps]}">
+        <div class="text-danger text-sm"></div>
+    </form>`;
 const attachmentField=()=>`
     <form id="attachmentForm" enctype="multipart/form-data" class="${"file-upload"+(storedMsgs[steps].length ? " d-none" : " d-inline-block")}">
         <label for="attachment-file">
@@ -99,34 +106,34 @@ const outgoingMsgInputs=()=>{
     btnSkip.disabled=false;
     const outgoingMsg=`<div class="d-flex align-items-center flex-row-reverse my-2" id='outgoing-steps-${steps}'>
     <img src="1.jpg" alt="" class="outgoing-logo">`;
-    if(steps===1 || steps===3 || steps>=5) btnNext.disabled=false;
+    if(steps===1 || steps===3 || steps>=5 || storedMsgs[steps].length) btnNext.disabled=false;
     else if(storedMsgs[steps].length===0) btnNext.disabled=true;
     if(steps<=5 && steps!==1){
         const inputType=steps===4 ? 'password' : 'text';
         if(steps===3){ 
             chatBody.innerHTML+=`${outgoingMsg}
-                <div class="me-2 chat-input">
+                <div class="me-2 chat-input animate__animated animate__zoomIn animate__delay-.4s">
                     ${usernameGenerator(labels[steps],inputType)}
                 </div>
             </div>`;
         }
         else
             chatBody.innerHTML+=`${outgoingMsg}
-                <div class="me-2 chat-input">
+                <div class="me-2 chat-input animate__animated animate__zoomIn animate__delay-.4s">
                 ${inputField(labels[steps],inputType)}
                 </div>
             </div>`;
     }
     else if(steps===1){
         chatBody.innerHTML+=`${outgoingMsg}
-                <div class='chat-input'>${attachmentField()}</div>
+                <div class='chat-input animate__animated animate__zoomIn animate__delay-.4s'>${attachmentField()}</div>
             </div>`;
     }
     else if(steps===6 || steps===7){
         const radioName=steps===6 ? 'package' : 'socialPlatform';
         const radioLists=steps===6 ? ['Starter','Free trial'] : ['Facebook', 'Instagram'];
         chatBody.innerHTML+=`${outgoingMsg}
-                <div class='chat-input'>${radiosField(radioName,radioLists)}</div>
+                <div class='chat-input animate__animated animate__zoomIn animate__delay-.4s'>${radiosField(radioName,radioLists)}</div>
             </div>`;
     }
 }
@@ -156,20 +163,8 @@ const handleDifferentMsgs=(nextClicked)=>{
         timeout1=setTimeout(()=>{
             chatBody.removeChild(document.getElementById(`incoming-steps-${steps}`));
             incomingMsgShow();
-            chatBody.innerHTML+=`
-            <div class="d-flex align-items-center flex-row-reverse my-1" id='outgoing-steps-${steps}'>
-                <img src="1.jpg" alt="" class="outgoing-logo">
-                <div class="chat-bubble me-2 py-1 px-2">
-                    ${msgLoader()}
-                </div>
-            </div>
-            `;
-            chatBody.scrollTo(document.getElementById(`outgoing-steps-${steps}`).scrollHeight,chatBody.scrollHeight);
-        },1000);
-        timeout2=setTimeout(()=>{
-            chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
             outgoingMsgInputs();
-        },2000);
+        },1400);
     }
     else{ 
         incomingMsgShow();
@@ -184,9 +179,9 @@ const stepsMsgHandler=(prevStep=null,nextClicked=null)=>{
     if(prevStep) steps++;
     if(steps<=7) handleDifferentMsgs(nextClicked); 
     if(nextClicked){
-        timeout3=setTimeout(()=>{
+        timeout2=setTimeout(()=>{
             scrollHandler(prevStep);
-        },2000);
+        },1400);
     }
     else scrollHandler(prevStep);
 }
@@ -226,6 +221,7 @@ const msgSendHandler=()=>{
         default:
             break;
     }
+    outgoingMsg.className=outgoingMsg.className.replace(' animate__animated animate__zoomIn animate__delay-.4s','');
 }
 stepsMsgHandler(null,true);
 const handleNextBtnClick=()=>{
@@ -245,7 +241,6 @@ btnNext.onclick=handleNextBtnClick;
 previousBtnLink.onclick=()=>{
     if(timeout1) clearTimeout(timeout1);
     if(timeout2) clearTimeout(timeout2);
-    if(timeout3) clearTimeout(timeout3);
     if(steps<8){
         chatBody.removeChild(document.getElementById(`incoming-steps-${steps}`));
         if(document.getElementById(`outgoing-steps-${steps}`)) chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
