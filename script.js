@@ -51,7 +51,6 @@ const handleAttachment=(e)=>{
 }
 const handleFormSubmit=(e)=>{
     e.preventDefault();
-    e.stopImmediatePropagation();
     if(!btnNext.disabled) handleNextBtnClick();
 }
 const inputField=(placeholder,type)=>`
@@ -267,3 +266,9 @@ btnSkip.onclick=()=>{
     storedMsgs[steps]='';
     handleNextBtnClick();
 }
+window.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if(!btnNext.disabled) handleNextBtnClick();
+    }
+});
