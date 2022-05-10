@@ -9,7 +9,7 @@ body{
 
 #chat-container{
     width: 300px;
-    height: 300px;
+    height: 50vh;
     background-color: white;
     border-radius: 12px;
     position: relative;
@@ -75,10 +75,10 @@ body{
 }
 #chat-body{
     position: absolute;
-    height: 222px;
+    height: calc(50vh - 77px);
     width: 100%;
     top: 32px;
-    overflow-y: hidden;
+    overflow-y: auto;
 }
 .attachment-file-div{
     width: 200px;
@@ -117,4 +117,8 @@ body{
 }
 .form-switch #username-checkbox.form-check-input:checked[type=checkbox]:after {
     background-color: #AFD0BF;
+}
+.btn-check:checked+.btn-light.radios-btn{
+    color: white;
+    background-color: #006c67;
 }

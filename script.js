@@ -1,7 +1,8 @@
-let steps=0;
+let steps=0,timeout1,timeout2,timeout3;
 const incomingMsgs=['What is the name of your shop?',"Upload your shop's logo.","What is your full name? ","Would you like to keep username generated from shop name as user name or change it?","Now enter a strong password you can remember.","Enter your business phone number","Your account is almost ready. Which plan would you like to subscribe?","Where do you sell?"];
 const labels={0:'eg The Sharee Store', 2:'Full Name',3:'Username',4:'Password',5:'Phone Number'};
 const storedMsgs=['','','','Generated username','','','Starter','Facebook'];
+const btnSkip=document.getElementById('btn-skip');
 const packageChanged=(e)=>{
     const elements=document.getElementsByName(e.id);
     elements.forEach(element=>{
@@ -67,9 +68,9 @@ const radiosField=(radioName,radioLists)=>`
         ${
             radioLists.map(id=>id===storedMsgs[steps] ? `
                 <input type="radio" class="btn-check" name="${radioName}" id="${id}" autocomplete="off" checked />
-                <label class="btn btn-light btn-sm" for="${id}">${id}</label>` : `
+                <label class="btn btn-light btn-sm radios-btn" for="${id}">${id}</label>` : `
                 <input type="radio" class="btn-check" name="${radioName}" id="${id}" autocomplete="off" />
-                <label class="btn btn-light btn-sm" for="${id}">${id}</label>`)
+                <label class="btn btn-light btn-sm radios-btn" for="${id}">${id}</label>`)
         }
     </div>`;
 const handleUsernameChange=(e)=>{
@@ -94,12 +95,8 @@ const usernameGenerator=(placeholder,type)=>`
         <input class="form-check-input" type="checkbox" role="switch" id="username-checkbox" checked oninput="handleUsernameChange(this)">
         <label class="form-check-label" for="username-checkbox">Use generated username</label>
     </div>`;
-const handleDifferentMsgs=()=>{
-    chatBody.innerHTML+=`
-    <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}'>
-        <img src="incoming-logo.png" alt="" class="incoming-logo">
-        <div class="incoming-msg p-2 ms-2">${incomingMsgs[steps]}</div>
-    </div>`;
+const outgoingMsgInputs=()=>{
+    btnSkip.disabled=false;
     const outgoingMsg=`<div class="d-flex align-items-center flex-row-reverse my-2" id='outgoing-steps-${steps}'>
     <img src="1.jpg" alt="" class="outgoing-logo">`;
     if(steps===1 || steps===3 || steps>=5) btnNext.disabled=false;
@@ -133,19 +130,71 @@ const handleDifferentMsgs=()=>{
             </div>`;
     }
 }
-const stepsMsgHandler=(prevStep=null)=>{
-    if(prevStep) steps++;
-    if(steps<=7){
-        handleDifferentMsgs(); 
+const incomingMsgShow=()=>{
+    chatBody.innerHTML+=`
+    <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}'>
+        <img src="incoming-logo.png" alt="" class="incoming-logo">
+        <div class="incoming-msg p-2 ms-2">${incomingMsgs[steps]}</div>
+    </div>`;
+}
+const msgLoader=()=>`<div class="typing">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    </div>`;
+const handleDifferentMsgs=(nextClicked)=>{
+    if(nextClicked){
+        chatBody.innerHTML+=`
+            <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}'>
+                <img src="incoming-logo.png" alt="" class="incoming-logo">
+                <div class="chat-bubble ms-2 py-1 px-2">
+                   ${msgLoader()}
+                </div>
+            </div>
+            `;
+        chatBody.scrollTo(document.getElementById(`incoming-steps-${steps}`).scrollHeight,chatBody.scrollHeight);
+        timeout1=setTimeout(()=>{
+            chatBody.removeChild(document.getElementById(`incoming-steps-${steps}`));
+            incomingMsgShow();
+            chatBody.innerHTML+=`
+            <div class="d-flex align-items-center flex-row-reverse my-1" id='outgoing-steps-${steps}'>
+                <img src="1.jpg" alt="" class="outgoing-logo">
+                <div class="chat-bubble me-2 py-1 px-2">
+                    ${msgLoader()}
+                </div>
+            </div>
+            `;
+            chatBody.scrollTo(document.getElementById(`outgoing-steps-${steps}`).scrollHeight,chatBody.scrollHeight);
+        },1000);
+        timeout2=setTimeout(()=>{
+            chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
+            outgoingMsgInputs();
+        },2000);
     }
-    if(!prevStep) window.document.getElementById('chat-body').scrollTo(document.getElementById(`incoming-steps-${steps}`).scrollHeight,document.getElementById('chat-body').scrollHeight);
-    else window.document.getElementById('chat-body').scrollTo(document.getElementById(`outgoing-steps-${steps-1}`).scrollHeight,document.getElementById(`chat-body`).scrollHeight);
+    else{ 
+        incomingMsgShow();
+        outgoingMsgInputs();
+    }
+}
+const scrollHandler=(prevStep)=>{
+    if(prevStep) chatBody.scrollTo(document.getElementById(`outgoing-steps-${steps-1}`).scrollHeight,chatBody.scrollHeight);
+    else chatBody.scrollTo(document.getElementById(`incoming-steps-${steps}`).scrollHeight,chatBody.scrollHeight);
+}
+const stepsMsgHandler=(prevStep=null,nextClicked=null)=>{
+    if(prevStep) steps++;
+    if(steps<=7) handleDifferentMsgs(nextClicked); 
+    if(nextClicked){
+        timeout3=setTimeout(()=>{
+            scrollHandler(prevStep);
+        },2000);
+    }
+    else scrollHandler(prevStep);
 }
 const msgSendHandler=()=>{
-    const incomingMsg=document.getElementById(`incoming-steps-${steps}`);
-    incomingMsg.className+=' blur-bg';
     const outgoingMsg=document.querySelector(`#${chatBody.lastChild.id} .chat-input`);
-    chatBody.lastChild.className+=' blur-bg';
+    const outgoingMsgImg=document.querySelector(`#${chatBody.lastChild.id} .outgoing-logo`);
+    outgoingMsgImg.className='incoming-logo';
+    outgoingMsgImg.src='incoming-logo.png';
     switch (steps) {
         case 0:
             outgoingMsg.innerHTML=`<div class="outgoing-msg p-2"><span class='current-value'>${storedMsgs[steps]}</span></div>`;
@@ -178,38 +227,28 @@ const msgSendHandler=()=>{
             break;
     }
 }
-stepsMsgHandler();
-btnNext.onclick=()=>{
+stepsMsgHandler(null,true);
+const handleNextBtnClick=()=>{
     if(steps<8){
+        btnNext.disabled=true;
+        btnSkip.disabled=true;
         msgSendHandler();
-        chatBody.innerHTML+=`
-            <div class="d-flex align-items-center my-1" id='spinner-msg'>
-                <img src="incoming-logo.png" alt="" class="incoming-logo">
-                <div class="chat-bubble ms-2 py-1 px-2">
-                    <div class="typing">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                </div>
-            </div>
-            `;
-        console.log(document.getElementById(`incoming-steps-${steps}`),'first')
-        setTimeout(()=>{
-            chatBody.removeChild(document.getElementById(`spinner-msg`));
-            stepsMsgHandler(true);
-        },500); 
-        chatBody.scrollTo(document.getElementById(`spinner-msg`).scrollHeight,chatBody.scrollHeight);
+        stepsMsgHandler(true,true);
+        if(steps===1 || steps===5) btnSkip.className=btnSkip.className.replace(' d-none','');
+        else if(!btnSkip.className.includes('d-none')) btnSkip.className+=' d-none';
+        if(steps) previousBtnLink.className='';
+        if(steps>7) btnNext.className+=' d-none';
+        else btnNext.className=btnNext.className.replace(' d-none',''); 
     } 
-    console.log('fdskj',steps)
-    if(steps) previousBtnLink.className='';
-    if(steps>=7) btnNext.className+=' d-none';
-    else btnNext.className=btnNext.className.replace(' d-none','');
 }
+btnNext.onclick=handleNextBtnClick;
 previousBtnLink.onclick=()=>{
+    if(timeout1) clearTimeout(timeout1);
+    if(timeout2) clearTimeout(timeout2);
+    if(timeout3) clearTimeout(timeout3);
     if(steps<8){
         chatBody.removeChild(document.getElementById(`incoming-steps-${steps}`));
-        chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
+        if(document.getElementById(`outgoing-steps-${steps}`)) chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
         chatBody.removeChild(document.getElementById(`incoming-steps-${steps-1}`));
         chatBody.removeChild(document.getElementById(`outgoing-steps-${steps-1}`));
         steps--;
@@ -222,4 +261,12 @@ previousBtnLink.onclick=()=>{
     }
     if(!steps) previousBtnLink.className='d-none';
     stepsMsgHandler();
+}
+btnSkip.onclick=()=>{
+    if(steps===1) {
+        const inputFile=document.getElementById('attachment-file');
+        inputFile.value='';
+    }
+    storedMsgs[steps]='';
+    handleNextBtnClick();
 }
