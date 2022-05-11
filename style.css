@@ -109,8 +109,8 @@ body{
     opacity: 0.5;
 }
 .register-input:focus {
-    border-color: #006C67;
-    box-shadow: inset 0 0 0 1px #006c67;
+    border-color: #006C67 !important;
+    box-shadow: inset 0 0 0 1px #006c67 !important;
 }
 #username-checkbox.form-check-input[type=checkbox]:checked {
     background-color: #e0e0e0;
@@ -121,4 +121,7 @@ body{
 .btn-check:checked+.btn-light.radios-btn{
     color: white;
     background-color: #006c67;
+}
+#password-visibility-icon{
+    cursor: pointer;
 }

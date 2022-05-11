@@ -13,7 +13,7 @@ const previousBtnLink=document.getElementById('btn-link');
 const chatBody=document.getElementById('chat-body');
 const btnNext=document.getElementById('btn-next');
 const handleTextFieldChange=(e)=>{
-    if(e.value.length) btnNext.disabled=false;
+    if(e.value.length || steps===5) btnNext.disabled=false;
     else btnNext.disabled=true;
     storedMsgs[steps]=e.value;
 }
@@ -53,9 +53,24 @@ const handleFormSubmit=(e)=>{
     e.preventDefault();
     if(!btnNext.disabled) handleNextBtnClick();
 }
+const togglePasswordVisibilty=(e)=>{
+    const element=document.querySelector(`#outgoing-steps-${steps} .register-input`);
+    if(e.target.className==='fas fa-eye'){
+        e.target.className="fas fa-eye-slash";
+        element.type='password';
+    }
+    else{ 
+        e.target.className='fas fa-eye';
+        element.type='text';
+    }
+    
+}
 const inputField=(placeholder,type)=>`
     <form onsubmit='handleFormSubmit(event)'>
-        <input type=${type} class="form-control form-control-sm register-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" value="${storedMsgs[steps]}">
+        <div class="input-group">
+            ${type==='password' ? `<span class="input-group-text" id="password-visibility-icon" onclick="togglePasswordVisibilty(event)"><i class="fas fa-eye-slash"></i></span>` : ``}
+            <input type=${type} class="form-control form-control-sm register-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" value="${storedMsgs[steps]}" aria-describedby="password-visibility-icon" autocomplete='off'>
+        </div>
         <div class="text-danger text-sm"></div>
     </form>`;
 const attachmentField=()=>`
@@ -94,11 +109,11 @@ const handleUsernameChange=(e)=>{
 }
 const usernameGenerator=(placeholder,type)=>`
     <div>
-        <input type="${type}" value="${storedMsgs[steps]}" class="form-control form-control-sm username-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" disabled>
+        <input type="${type}" value="${storedMsgs[steps]}" class="form-control form-control-sm username-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)"  ${storedMsgs[steps]==='Generated username' ?`disabled` : ``}>
         <div class="text-danger text-sm"></div>
     </div>
     <div class="form-check form-switch mt-1 me-2">
-        <input class="form-check-input" type="checkbox" role="switch" id="username-checkbox" checked oninput="handleUsernameChange(this)">
+        <input class="form-check-input" type="checkbox" role="switch" id="username-checkbox" ${storedMsgs[steps]==='Generated username' ?`checked` : ``} oninput="handleUsernameChange(this)">
         <label class="form-check-label" for="username-checkbox">Use generated username</label>
     </div>`;
 const outgoingMsgInputs=()=>{
@@ -184,14 +199,21 @@ const stepsMsgHandler=(prevStep=null,nextClicked=null)=>{
     }
     else scrollHandler(prevStep);
 }
+const showPassword=(password,type)=>{
+    if(type==='slash'){
+        let returnedPassword='';
+        for(let i=0;i<password.length;i++)
+            returnedPassword+='.';
+        return returnedPassword;
+    }
+    return password;
+}
 const msgSendHandler=()=>{
     const outgoingMsg=document.querySelector(`#${chatBody.lastChild.id} .chat-input`);
-    const outgoingMsgImg=document.querySelector(`#${chatBody.lastChild.id} .outgoing-logo`);
-    outgoingMsgImg.className='incoming-logo';
-    outgoingMsgImg.src='incoming-logo.png';
+    outgoingMsg.className=outgoingMsg.className.replace(' animate__animated animate__zoomIn animate__delay-.4s','');
     switch (steps) {
         case 0:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2"><span class='current-value'>${storedMsgs[steps]}</span></div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[steps]}</div>`;
             break;
         case 1:
             if(storedMsgs[steps]?.length)
@@ -200,27 +222,37 @@ const msgSendHandler=()=>{
             else outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">Let's skip this for now.</div>`;
             break;
         case 2:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">Hello ${storedMsgs[steps]}, nice to meet you.</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[steps]}</div>`;
+            chatBody.innerHTML+=`
+            <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}_1'>
+                <img src="incoming-logo.png" alt="" class="incoming-logo">
+                <div class="incoming-msg p-2 ms-2">Hello ${storedMsgs[steps]}, nice to meet you.</div>
+            </div>`;
             break;
         case 3:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">Your username is ${storedMsgs[steps]}.</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[steps]}.</div>`;
             break;
         case 4:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">Nice! Strong password.</div>`;
+            const passwordVisibilityIcon=document.querySelector(`#password-visibility-icon i`).className.split('-').pop();
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${showPassword(storedMsgs[steps],passwordVisibilityIcon)}</div>`;
+            chatBody.innerHTML+=`
+            <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}_1'>
+                <img src="incoming-logo.png" alt="" class="incoming-logo">
+                <div class="incoming-msg p-2 ms-2">Nice, strong password!</div>
+            </div>`;
             break;
         case 5: 
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps].length ? `Thanks for providing your contact number, ${storedMsgs[steps]}.` : `Let's skip this for now.`}</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps].length ? `${storedMsgs[steps]}` : `Let's skip this for now.`}</div>`;
             break;
         case 6:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">You've subscribed to <span class='current-value'>${storedMsgs[steps]}</span> plan.</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps]}</div>`;
             break;
         case 7:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">You've chosen ${storedMsgs[steps]} platform to sell your products.</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps]}</div>`;
             break;
         default:
             break;
     }
-    outgoingMsg.className=outgoingMsg.className.replace(' animate__animated animate__zoomIn animate__delay-.4s','');
 }
 stepsMsgHandler(null,true);
 const handleNextBtnClick=()=>{
@@ -245,6 +277,7 @@ previousBtnLink.onclick=()=>{
         if(document.getElementById(`outgoing-steps-${steps}`)) chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
         chatBody.removeChild(document.getElementById(`incoming-steps-${steps-1}`));
         chatBody.removeChild(document.getElementById(`outgoing-steps-${steps-1}`));
+        if((steps-1===2) || (steps-1===4)) chatBody.removeChild(document.getElementById(`incoming-steps-${steps-1}_1`));
         steps--;
     }
     else{
