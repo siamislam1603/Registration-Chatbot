@@ -1,21 +1,27 @@
-let steps=0,timeout1,timeout2;
-const incomingMsgs=['What is the name of your shop?',"Upload your shop's logo.","What is your full name? ","Would you like to keep username generated from shop name as user name or change it?","Now enter a strong password you can remember.","Enter your business phone number","Your account is almost ready. Which plan would you like to subscribe?","Where do you sell?"];
-const labels={0:'eg The Sharee Store', 2:'Full Name',3:'Username',4:'Password',5:'Phone Number'};
-const storedMsgs=['','','','Generated username','','','Starter','Facebook'];
+let steps=13,timeout1,timeout2;
+const stepsDes={0:'name',1:'shop',2:'username',3:'pass',4:'confirmPass',5:'businessInfo',6:'logo',7:'region',8:'phone',9:'package',10:'sell',11:'category',12:'people',13:'userEmails',14:'done'};
+const incomingMsgs={shop:'What is the name of your shop?',logo:"Upload your shop's logo.",name:"Hi! 😄 Could you please share your full name? ",username:"Let’s get you a user name. Do you want LazyChat to generate a username for you? Or do you want to enter it your self?",pass:"Now enter a strong password you can remember.",confirmPass:'Please confirm your password again.',businessInfo:'Now let’s get to know about your business.',region:"Are you from Bangladesh or not?",phone:'Please enter your phone number',package:"Your account is almost ready. Which plan would you like to subscribe?",sell:"Where do you sell?",category:'What is your business category?',people:'How many people work in your business?',userEmails:'Add other users to LazyChat. Enter emails of the users separated by a comma.',done:'Now your account is set! Now, let’s get your online business pumped.'};
+const labels={shop:'eg The Sharee Store', name:'Full Name',username:'Username',pass:'Password',confirmPass:'Confirm Password',phone:'Phone Number',userEmails:'Enter emails'};
+const storedMsgs={shop:'',logo:'',name:'',username:'Generated username',pass:'',confirmPass:'',businessInfo:'',region:'Yes',phone:'',package:'Starter',sell:'Facebook',category:'Choose an option',people:'Choose an option',userEmails:''};
 const btnSkip=document.getElementById('btn-skip');
 const packageChanged=(e)=>{
     const elements=document.getElementsByName(e.id);
     elements.forEach(element=>{
-        if(element.checked) storedMsgs[steps]=element.id;
+        if(element.checked){
+            storedMsgs[stepsDes[steps+'']]=element.id;
+            console.log(element.id,stepsDes[steps+''])
+            if(stepsDes[steps+'']==='region')
+                labels[stepsDes[(steps+1)+'']]=element.id==='Yes' ? 'Enter phone number' : 'Enter Email';
+        }
     })
 }
 const previousBtnLink=document.getElementById('btn-link');
 const chatBody=document.getElementById('chat-body');
 const btnNext=document.getElementById('btn-next');
 const handleTextFieldChange=(e)=>{
-    if(e.value.length || steps===5) btnNext.disabled=false;
+    if(e.value.length || stepsDes[steps]==='phone') btnNext.disabled=false;
     else btnNext.disabled=true;
-    storedMsgs[steps]=e.value;
+    storedMsgs[stepsDes[steps+'']]=e.value;
 }
 const handleImgRemove=()=>{
     const uploadedFileEl=document.querySelector(`#${chatBody.lastChild.id} .chat-input>#uploaded-file`);
@@ -24,11 +30,11 @@ const handleImgRemove=()=>{
     const inputFile=document.getElementById('attachment-file');
     attachmentForm.className=attachmentForm.className.replace('d-none','d-inline-block');
     inputFile.value='';
-    storedMsgs[steps]='';
+    storedMsgs[stepsDes[steps+'']]='';
 }
 const uploadedImgShow=()=>`
     <div class="position-relative">
-        <img src="${storedMsgs[steps]}" alt='' class='uploaded-img'>
+        <img src="${storedMsgs[stepsDes[steps+'']]}" alt='' class='uploaded-img'>
         <span class="position-absolute top-0 start-100 translate-middle badge bg-dark rounded-pill">
             <span class='close-btn' onclick="handleImgRemove()">x</span>
             <span class="visually-hidden">unread messages</span>
@@ -45,7 +51,7 @@ const handleAttachment=(e)=>{
     else{ 
         errorMsgEl.innerText='';
         attachmentForm.className=attachmentForm.className.replace('d-inline-block','d-none');
-        storedMsgs[steps] = URL.createObjectURL(e.files[0]);
+        storedMsgs[stepsDes[steps+'']] = URL.createObjectURL(e.files[0]);
         uploadedFileEl.innerHTML=uploadedImgShow();
     }
 }
@@ -69,25 +75,25 @@ const inputField=(placeholder,type)=>`
     <form onsubmit='handleFormSubmit(event)'>
         <div class="input-group">
             ${type==='password' ? `<span class="input-group-text" id="password-visibility-icon" onclick="togglePasswordVisibilty(event)"><i class="fas fa-eye-slash"></i></span>` : ``}
-            <input type=${type} class="form-control form-control-sm register-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" value="${storedMsgs[steps]}" aria-describedby="password-visibility-icon" autocomplete='off'>
+            <input type=${type} class="form-control form-control-sm register-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)" value="${storedMsgs[stepsDes[steps+'']]}" aria-describedby="password-visibility-icon" autocomplete='off'>
         </div>
         <div class="text-danger text-sm"></div>
     </form>`;
 const attachmentField=()=>`
-    <form id="attachmentForm" enctype="multipart/form-data" class="${"file-upload"+(storedMsgs[steps].length ? " d-none" : " d-inline-block")}">
+    <form id="attachmentForm" enctype="multipart/form-data" class="${"file-upload"+(storedMsgs[stepsDes[steps+'']].length ? " d-none" : " d-inline-block")}">
         <label for="attachment-file">
             <div class="d-flex align-items-center justify-content-center attachment-file-div me-2">
                 <i class="fas fa-cloud-upload-alt"></i>
             </div>
         </label>
-        <input type="file" name="file" id="attachment-file" class="d-none" oninput="handleAttachment(this)"/>
+        <input type="file" name="file" id="attachment-file" class="d-none" oninput="handleAttachment(this)" accept="image/png, image/jpg, image/jpeg"/>
     </form>
     <div class="text-danger text-sm error-msg"></div>
-    <div id='uploaded-file' class='me-2'>${storedMsgs[steps].length ? uploadedImgShow() : ''}</div>`;
+    <div id='uploaded-file' class='me-2'>${storedMsgs[stepsDes[steps+'']].length ? uploadedImgShow() : ''}</div>`;
 const radiosField=(radioName,radioLists)=>`
     <div class="btn-group me-2" id="${radioName}" onchange="packageChanged(this)">
         ${
-            radioLists.map(id=>id===storedMsgs[steps] ? `
+            radioLists.map(id=>id===storedMsgs[stepsDes[steps+'']] ? `
                 <input type="radio" class="btn-check" name="${radioName}" id="${id}" autocomplete="off" checked />
                 <label class="btn btn-light btn-sm radios-btn" for="${id}">${id}</label>` : `
                 <input type="radio" class="btn-check" name="${radioName}" id="${id}" autocomplete="off" />
@@ -98,56 +104,88 @@ const handleUsernameChange=(e)=>{
     const usernameInput=document.querySelector(`#${chatBody.lastChild.id} .chat-input .username-input`);
     if(!e.checked){ 
         usernameInput.disabled=false;
-        storedMsgs[steps]=e.value;
+        storedMsgs[stepsDes[steps+'']]=e.value;
     }
     else{ 
         usernameInput.disabled=true;
         usernameInput.value='Generated username';
         btnNext.disabled=false;
-        storedMsgs[steps]='Generated username';
+        storedMsgs[stepsDes[steps+'']]='Generated username';
     }
 }
 const usernameGenerator=(placeholder,type)=>`
+    <div class="form-check form-switch mt-1 me-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="username-checkbox" ${storedMsgs[stepsDes[steps+'']]==='Generated username' ?`checked` : ``} oninput="handleUsernameChange(this)">
+        <label class="form-check-label" for="username-checkbox">Use generated username</label>
+    </div>
     <div>
-        <input type="${type}" value="${storedMsgs[steps]}" class="form-control form-control-sm username-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)"  ${storedMsgs[steps]==='Generated username' ?`disabled` : ``}>
+        <input type="${type}" value="${storedMsgs[stepsDes[steps+'']]}" class="form-control form-control-sm username-input" placeholder="${placeholder}" oninput="handleTextFieldChange(this)"  ${storedMsgs[stepsDes[steps+'']]==='Generated username' ?`disabled` : ``}>
         <div class="text-danger text-sm"></div>
     </div>
-    <div class="form-check form-switch mt-1 me-2">
-        <input class="form-check-input" type="checkbox" role="switch" id="username-checkbox" ${storedMsgs[steps]==='Generated username' ?`checked` : ``} oninput="handleUsernameChange(this)">
-        <label class="form-check-label" for="username-checkbox">Use generated username</label>
-    </div>`;
+    `;
+const optionChange=(e)=>{
+    if(e.value==='Choose an option') btnNext.disabled=true;
+    else btnNext.disabled=false;
+    storedMsgs[stepsDes[steps+'']]=e.value;
+}
+const selectField=(dropdownLists)=>`
+    <select class="form-select form-select-sm" onchange="optionChange(this)">
+        ${
+            dropdownLists.map(id=>`
+                <option ${id===storedMsgs[stepsDes[steps+'']] && `selected`} value='${id}'>${id}</option>`)
+        }
+    </select>
+`
 const outgoingMsgInputs=()=>{
     btnSkip.disabled=false;
     const outgoingMsg=`<div class="d-flex align-items-center flex-row-reverse my-2" id='outgoing-steps-${steps}'>
     <img src="1.jpg" alt="" class="outgoing-logo">`;
-    if(steps===1 || steps===3 || steps>=5 || storedMsgs[steps].length) btnNext.disabled=false;
-    else if(storedMsgs[steps].length===0) btnNext.disabled=true;
-    if(steps<=5 && steps!==1){
-        const inputType=steps===4 ? 'password' : 'text';
-        if(steps===3){ 
+    if(storedMsgs[stepsDes[steps+'']]==='Choose an option') btnNext.disabled=true;
+    else if(stepsDes[steps+'']==='logo' || stepsDes[steps+'']==='username' || stepsDes[steps+'']==='package' || stepsDes[steps+'']==='sell' || storedMsgs[stepsDes[steps+'']]?.length) btnNext.disabled=false;
+    else if(storedMsgs[stepsDes[steps+'']]?.length===0) btnNext.disabled=true;
+    if(stepsDes[steps+'']==='shop' || stepsDes[steps+'']==='name' || stepsDes[steps+'']==='username' || stepsDes[steps+'']==='pass' || stepsDes[steps+'']==='confirmPass' || stepsDes[steps+'']==='phone'|| stepsDes[steps+'']==='userEmails'){
+        const inputType=(stepsDes[steps+'']==='pass'||stepsDes[steps+'']==='confirmPass') ? 'password' : 'text';
+        if(stepsDes[steps+'']==='username'){ 
             chatBody.innerHTML+=`${outgoingMsg}
                 <div class="me-2 chat-input animate__animated animate__zoomIn animate__delay-.4s">
-                    ${usernameGenerator(labels[steps],inputType)}
+                    ${usernameGenerator(labels[stepsDes[steps+'']],inputType)}
                 </div>
             </div>`;
         }
         else
             chatBody.innerHTML+=`${outgoingMsg}
                 <div class="me-2 chat-input animate__animated animate__zoomIn animate__delay-.4s">
-                ${inputField(labels[steps],inputType)}
+                ${inputField(labels[stepsDes[steps+'']],inputType)}
                 </div>
             </div>`;
     }
-    else if(steps===1){
+    else if(stepsDes[steps+'']==='logo'){
         chatBody.innerHTML+=`${outgoingMsg}
                 <div class='chat-input animate__animated animate__zoomIn animate__delay-.4s'>${attachmentField()}</div>
             </div>`;
     }
-    else if(steps===6 || steps===7){
-        const radioName=steps===6 ? 'package' : 'socialPlatform';
-        const radioLists=steps===6 ? ['Starter','Free trial'] : ['Facebook', 'Instagram'];
+    else if(stepsDes[steps+'']==='package' || stepsDes[steps+'']==='sell' || stepsDes[steps+'']==='region'){
+        let radioName,radioLists;
+        if(stepsDes[steps+'']==='package'){ 
+            radioName='package';
+            radioLists=['Starter','Free trial'];
+        }
+        else if(stepsDes[steps+'']==='region'){
+            radioName='region';
+            radioLists=['Yes','No'];
+        }    
+        else{
+            radioName='socialPlatform';
+            radioLists=['Facebook', 'Instagram'];
+        }
         chatBody.innerHTML+=`${outgoingMsg}
                 <div class='chat-input animate__animated animate__zoomIn animate__delay-.4s'>${radiosField(radioName,radioLists)}</div>
+            </div>`;
+    }
+    else if(stepsDes[steps+'']==='category' || stepsDes[steps+'']==='people'){
+        const dropdownLists=stepsDes[steps+'']==='category' ? ['Choose an option','Apparel & Clothing','Beauty, Cosmetic & Personal Care','Grocery','Processed/Packaged Food','Restaurant/Cloud Kitchen','Electronics','Miscellaneous','Others'] : ['Choose an option','0-5','5-20','20-100','>=100']
+        chatBody.innerHTML+=`${outgoingMsg}
+                <div class='me-2 chat-input animate__animated animate__zoomIn animate__delay-.4s'>${selectField(dropdownLists)}</div>
             </div>`;
     }
 }
@@ -155,7 +193,7 @@ const incomingMsgShow=()=>{
     chatBody.innerHTML+=`
     <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}'>
         <img src="incoming-logo.png" alt="" class="incoming-logo">
-        <div class="incoming-msg p-2 ms-2">${incomingMsgs[steps]}</div>
+        <div class="incoming-msg p-2 ms-2">${incomingMsgs[stepsDes[steps+'']]}</div>
     </div>`;
 }
 const msgLoader=()=>`<div class="typing">
@@ -183,18 +221,23 @@ const handleDifferentMsgs=(nextClicked)=>{
     else{ 
         incomingMsgShow();
         outgoingMsgInputs();
+        if(stepsDes[steps]==='businessInfo') handlePreviousBtnClick();
     }
 }
 const scrollHandler=(prevStep)=>{
-    if(prevStep) chatBody.scrollTo(document.getElementById(`outgoing-steps-${steps-1}`).scrollHeight,chatBody.scrollHeight);
-    else chatBody.scrollTo(document.getElementById(`incoming-steps-${steps}`).scrollHeight,chatBody.scrollHeight);
+    if(!prevStep){
+        chatBody.scrollTo(document.getElementById(`incoming-steps-${steps}`).scrollHeight,chatBody.scrollHeight);
+    } 
+    else if(prevStep && stepsDes[(steps-1)+'']==='businessInfo') chatBody.scrollTo(document.getElementById(`incoming-steps-${steps-1}`).scrollHeight,chatBody.scrollHeight);
+    else chatBody.scrollTo(document.getElementById(`outgoing-steps-${steps-1}`).scrollHeight,chatBody.scrollHeight);
 }
 const stepsMsgHandler=(prevStep=null,nextClicked=null)=>{
     if(prevStep) steps++;
-    if(steps<=7) handleDifferentMsgs(nextClicked); 
+    if(steps<=Object.keys(stepsDes).length-1) handleDifferentMsgs(nextClicked); 
     if(nextClicked){
         timeout2=setTimeout(()=>{
             scrollHandler(prevStep);
+            if(stepsDes[steps+'']==='businessInfo') handleNextBtnClick();
         },1400);
     }
     else scrollHandler(prevStep);
@@ -203,52 +246,69 @@ const showPassword=(password,type)=>{
     if(type==='slash'){
         let returnedPassword='';
         for(let i=0;i<password.length;i++)
-            returnedPassword+='.';
+            returnedPassword+='*';
         return returnedPassword;
     }
     return password;
 }
 const msgSendHandler=()=>{
     const outgoingMsg=document.querySelector(`#${chatBody.lastChild.id} .chat-input`);
-    outgoingMsg.className=outgoingMsg.className.replace(' animate__animated animate__zoomIn animate__delay-.4s','');
-    switch (steps) {
-        case 0:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[steps]}</div>`;
+    if(outgoingMsg)
+        outgoingMsg.className=outgoingMsg.className.replace('animate__animated animate__zoomIn animate__delay-.4s','');
+    switch (stepsDes[steps+'']) {
+        case 'shop':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
             break;
-        case 1:
-            if(storedMsgs[steps]?.length)
+        case 'logo':
+            if(storedMsgs[stepsDes[steps+'']]?.length)
                 outgoingMsg.innerHTML=`<div class="me-2">
-                <img src="${storedMsgs[steps]}" alt='' class='uploaded-img'></div>`;
+                <img src="${storedMsgs[stepsDes[steps+'']]}" alt='' class='uploaded-img'></div>`;
             else outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">Let's skip this for now.</div>`;
             break;
-        case 2:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[steps]}</div>`;
+        case 'name':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
             chatBody.innerHTML+=`
             <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}_1'>
                 <img src="incoming-logo.png" alt="" class="incoming-logo">
-                <div class="incoming-msg p-2 ms-2">Hello ${storedMsgs[steps]}, nice to meet you.</div>
+                <div class="incoming-msg p-2 ms-2">Hello ${storedMsgs[stepsDes[steps+'']]} 👋, Hope you are having a great day!</div>
             </div>`;
             break;
-        case 3:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${storedMsgs[steps]}.</div>`;
+        case 'username':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">Your username is${storedMsgs[stepsDes[steps+'']]}.</div>`;
             break;
-        case 4:
+        case 'pass':
             const passwordVisibilityIcon=document.querySelector(`#password-visibility-icon i`).className.split('-').pop();
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${showPassword(storedMsgs[steps],passwordVisibilityIcon)}</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">${showPassword(storedMsgs[stepsDes[steps+'']],passwordVisibilityIcon)}</div>`;
             chatBody.innerHTML+=`
             <div class="d-flex align-items-center my-1" id='incoming-steps-${steps}_1'>
                 <img src="incoming-logo.png" alt="" class="incoming-logo">
-                <div class="incoming-msg p-2 ms-2">Nice, strong password!</div>
+                <div class="incoming-msg p-2 ms-2">Great, Strong password 💪</div>
             </div>`;
             break;
-        case 5: 
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps].length ? `${storedMsgs[steps]}` : `Let's skip this for now.`}</div>`;
+        case 'confirmPass':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2">Awesome! Your account is now secured.</div>`;
             break;
-        case 6:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps]}</div>`;
+        case 'phone': 
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']].length ? storedMsgs[stepsDes[steps+'']] : `Let's skip this for now.`}</div>`;
             break;
-        case 7:
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[steps]}</div>`;
+        case 'userEmails':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">You added ${storedMsgs[stepsDes[steps+'']].split(',').length} users. Ask them to check their respective emails. A mail has been sent with their login credentials. 
+            </div>`;
+            break;
+        case 'category':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
+            break;
+        case 'people':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
+            break;
+        case 'region':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
+            break;
+        case 'package':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
+            break;
+        case 'sell':
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
             break;
         default:
             break;
@@ -256,28 +316,29 @@ const msgSendHandler=()=>{
 }
 stepsMsgHandler(null,true);
 const handleNextBtnClick=()=>{
-    if(steps<8){
+    if(steps<Object.keys(stepsDes).length){
         btnNext.disabled=true;
         btnSkip.disabled=true;
         msgSendHandler();
         stepsMsgHandler(true,true);
-        if(steps===1 || steps===5) btnSkip.className=btnSkip.className.replace(' d-none','');
+        if(stepsDes[steps+'']==='logo' || (stepsDes[steps+'']==='phone' && storedMsgs[stepsDes[(steps-1)+'']]==='Yes')) btnSkip.className=btnSkip.className.replace(' d-none','');
         else if(!btnSkip.className.includes('d-none')) btnSkip.className+=' d-none';
         if(steps) previousBtnLink.className='';
-        if(steps>7) btnNext.className+=' d-none';
+        if(steps>Object.keys(stepsDes).length-1) btnNext.className+=' d-none';
         else btnNext.className=btnNext.className.replace(' d-none',''); 
     } 
 }
 btnNext.onclick=handleNextBtnClick;
-previousBtnLink.onclick=()=>{
+const handlePreviousBtnClick=()=>{
     if(timeout1) clearTimeout(timeout1);
     if(timeout2) clearTimeout(timeout2);
-    if(steps<8){
+    if(steps<Object.keys(stepsDes).length){
         chatBody.removeChild(document.getElementById(`incoming-steps-${steps}`));
         if(document.getElementById(`outgoing-steps-${steps}`)) chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
         chatBody.removeChild(document.getElementById(`incoming-steps-${steps-1}`));
-        chatBody.removeChild(document.getElementById(`outgoing-steps-${steps-1}`));
-        if((steps-1===2) || (steps-1===4)) chatBody.removeChild(document.getElementById(`incoming-steps-${steps-1}_1`));
+        if(document.getElementById(`outgoing-steps-${steps-1}`))
+            chatBody.removeChild(document.getElementById(`outgoing-steps-${steps-1}`));
+        if((stepsDes[(steps-1)+'']==='name') || (stepsDes[(steps-1)+'']==='pass')) chatBody.removeChild(document.getElementById(`incoming-steps-${steps-1}_1`));
         steps--;
     }
     else{
@@ -286,17 +347,18 @@ previousBtnLink.onclick=()=>{
         chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
         btnNext.className=btnNext.className.replace(' d-none','');
     }
-    if(steps===1 || steps===5) btnSkip.className=btnSkip.className.replace(' d-none','');
+    if(stepsDes[steps+'']==='logo') btnSkip.className=btnSkip.className.replace(' d-none','');
     else if(!btnSkip.className.includes('d-none')) btnSkip.className+=' d-none';
     if(!steps) previousBtnLink.className='d-none';
     stepsMsgHandler();
 }
+previousBtnLink.onclick=handlePreviousBtnClick;
 btnSkip.onclick=()=>{
-    if(steps===1) {
+    if(stepsDes[steps+'']==='logo') {
         const inputFile=document.getElementById('attachment-file');
         inputFile.value='';
     }
-    storedMsgs[steps]='';
+    storedMsgs[stepsDes[steps+'']]='';
     handleNextBtnClick();
 }
 window.addEventListener("keypress", function(event) {
