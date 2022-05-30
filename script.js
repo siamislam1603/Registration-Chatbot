@@ -1,9 +1,13 @@
-let steps=13,timeout1,timeout2;
-const stepsDes={0:'name',1:'shop',2:'username',3:'pass',4:'confirmPass',5:'businessInfo',6:'logo',7:'region',8:'phone',9:'package',10:'sell',11:'category',12:'people',13:'userEmails',14:'done'};
-const incomingMsgs={shop:'What is the name of your shop?',logo:"Upload your shop's logo.",name:"Hi! 😄 Could you please share your full name? ",username:"Let’s get you a user name. Do you want LazyChat to generate a username for you? Or do you want to enter it your self?",pass:"Now enter a strong password you can remember.",confirmPass:'Please confirm your password again.',businessInfo:'Now let’s get to know about your business.',region:"Are you from Bangladesh or not?",phone:'Please enter your phone number',package:"Your account is almost ready. Which plan would you like to subscribe?",sell:"Where do you sell?",category:'What is your business category?',people:'How many people work in your business?',userEmails:'Add other users to LazyChat. Enter emails of the users separated by a comma.',done:'Now your account is set! Now, let’s get your online business pumped.'};
-const labels={shop:'eg The Sharee Store', name:'Full Name',username:'Username',pass:'Password',confirmPass:'Confirm Password',phone:'Phone Number',userEmails:'Enter emails'};
-const storedMsgs={shop:'',logo:'',name:'',username:'Generated username',pass:'',confirmPass:'',businessInfo:'',region:'Yes',phone:'',package:'Starter',sell:'Facebook',category:'Choose an option',people:'Choose an option',userEmails:''};
+let steps=0,timeout1,timeout2;
+let stepsDes={0:'name',1:'shop',2:'username',3:'pass',4:'confirmPass',5:'businessInfo',6:'logo',7:'region',8:'phone',9:'package',10:'sell',11:'category'};
+const fixedStepsDes={0:'name',1:'shop',2:'username',3:'pass',4:'confirmPass',5:'businessInfo',6:'logo',7:'region',8:'phone',9:'package',10:'sell',11:'category'};
+const stepsDesWithoutOthersCategory={12:'people',13:'userEmails',14:'done'};
+const stepsDesWithOthersCategory={12:'othersCategory',13:'people',14:'userEmails',15:'done'};
+const incomingMsgs={shop:'What is the name of your shop?',logo:"Upload your shop's logo.",name:"Hi! 😄 Could you please share your full name? ",username:"Let’s get you a user name. Do you want LazyChat to generate a username for you? Or do you want to enter it your self?",pass:"Now enter a strong password you can remember.",confirmPass:'Please confirm your password again.',businessInfo:'Now let’s get to know about your business.',region:"Are you from Bangladesh or not?",phone:'Please enter your phone number',package:"Your account is almost ready. Which plan would you like to subscribe?",sell:"Where do you sell?",category:'What is your business category?',othersCategory:"What's your preferred business category?",people:'How many people work in your business?',userEmails:'Add other users to LazyChat. Enter emails of the users separated by a comma.',done:'Now your account is set! Now, let’s get your online business pumped.'};
+const labels={shop:'eg The Sharee Store', name:'Full Name',username:'Username',pass:'Password',confirmPass:'Confirm Password',phone:'Phone Number',userEmails:'Enter emails',othersCategory:'Specify your product category'};
+const storedMsgs={shop:'',logo:'',name:'',username:'Generated username',pass:'',confirmPass:'',businessInfo:'',region:'Yes',phone:'',package:'Starter',sell:'Facebook',category:'Choose an option',people:'Choose an option',userEmails:'',othersCategory:''};
 const btnSkip=document.getElementById('btn-skip');
+const btnDone=document.getElementById('btn-done');
 const packageChanged=(e)=>{
     const elements=document.getElementsByName(e.id);
     elements.forEach(element=>{
@@ -143,7 +147,7 @@ const outgoingMsgInputs=()=>{
     if(storedMsgs[stepsDes[steps+'']]==='Choose an option') btnNext.disabled=true;
     else if(stepsDes[steps+'']==='logo' || stepsDes[steps+'']==='username' || stepsDes[steps+'']==='package' || stepsDes[steps+'']==='sell' || storedMsgs[stepsDes[steps+'']]?.length) btnNext.disabled=false;
     else if(storedMsgs[stepsDes[steps+'']]?.length===0) btnNext.disabled=true;
-    if(stepsDes[steps+'']==='shop' || stepsDes[steps+'']==='name' || stepsDes[steps+'']==='username' || stepsDes[steps+'']==='pass' || stepsDes[steps+'']==='confirmPass' || stepsDes[steps+'']==='phone'|| stepsDes[steps+'']==='userEmails'){
+    if(stepsDes[steps+'']==='shop' || stepsDes[steps+'']==='name' || stepsDes[steps+'']==='username' || stepsDes[steps+'']==='pass' || stepsDes[steps+'']==='confirmPass' || stepsDes[steps+'']==='phone'|| stepsDes[steps+'']==='userEmails'|| stepsDes[steps+'']==='othersCategory'){
         const inputType=(stepsDes[steps+'']==='pass'||stepsDes[steps+'']==='confirmPass') ? 'password' : 'text';
         if(stepsDes[steps+'']==='username'){ 
             chatBody.innerHTML+=`${outgoingMsg}
@@ -292,14 +296,17 @@ const msgSendHandler=()=>{
             outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']].length ? storedMsgs[stepsDes[steps+'']] : `Let's skip this for now.`}</div>`;
             break;
         case 'userEmails':
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">You added ${storedMsgs[stepsDes[steps+'']].split(',').length} users. Ask them to check their respective emails. A mail has been sent with their login credentials. 
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']].length ? `You added ${storedMsgs[stepsDes[steps+'']].split(',').length} users. Ask them to check their respective emails. A mail has been sent with their login credentials.` : `Let's skip this for now.`} 
             </div>`;
             break;
         case 'category':
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
+            if(storedMsgs[stepsDes[steps+'']]==='Others')
+                stepsDes={...fixedStepsDes,...stepsDesWithOthersCategory};
+            else stepsDes={...fixedStepsDes,...stepsDesWithoutOthersCategory};
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']].length ? storedMsgs[stepsDes[steps+'']] : `Let's skip this for now.`}</div>`;
             break;
         case 'people':
-            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
+            outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']].length ? storedMsgs[stepsDes[steps+'']] : `Let's skip this for now.`}</div>`;
             break;
         case 'region':
             outgoingMsg.innerHTML=`<div class="outgoing-msg p-2 me-2">${storedMsgs[stepsDes[steps+'']]}</div>`;
@@ -321,11 +328,15 @@ const handleNextBtnClick=()=>{
         btnSkip.disabled=true;
         msgSendHandler();
         stepsMsgHandler(true,true);
-        if(stepsDes[steps+'']==='logo' || (stepsDes[steps+'']==='phone' && storedMsgs[stepsDes[(steps-1)+'']]==='Yes')) btnSkip.className=btnSkip.className.replace(' d-none','');
+        if(stepsDes[steps+'']==='logo' || stepsDes[steps+'']==='category' || stepsDes[steps+'']==='people' || stepsDes[steps+'']==='userEmails' || (stepsDes[steps+'']==='phone' && storedMsgs[stepsDes[(steps-1)+'']]==='Yes')) btnSkip.className=btnSkip.className.replace(' d-none','');
         else if(!btnSkip.className.includes('d-none')) btnSkip.className+=' d-none';
         if(steps) previousBtnLink.className='';
         if(steps>Object.keys(stepsDes).length-1) btnNext.className+=' d-none';
         else btnNext.className=btnNext.className.replace(' d-none',''); 
+        if(stepsDes[steps+'']==='done') {
+            btnNext.className+=' d-none';
+            btnDone.className=btnDone.className.replace(' d-none','');
+        }
     } 
 }
 btnNext.onclick=handleNextBtnClick;
@@ -347,9 +358,13 @@ const handlePreviousBtnClick=()=>{
         chatBody.removeChild(document.getElementById(`outgoing-steps-${steps}`));
         btnNext.className=btnNext.className.replace(' d-none','');
     }
-    if(stepsDes[steps+'']==='logo') btnSkip.className=btnSkip.className.replace(' d-none','');
+    if(stepsDes[steps+'']==='logo' || stepsDes[steps+'']==='category' || stepsDes[steps+'']==='people' || stepsDes[steps+'']==='userEmails' || (stepsDes[steps+'']==='phone' && storedMsgs[stepsDes[(steps-1)+'']]==='Yes')) btnSkip.className=btnSkip.className.replace(' d-none','');
     else if(!btnSkip.className.includes('d-none')) btnSkip.className+=' d-none';
     if(!steps) previousBtnLink.className='d-none';
+    if(stepsDes[(steps+1)+'']==='done') {
+        btnDone.className+=' d-none';
+        btnNext.className=btnNext.className.replace(' d-none','');
+    }
     stepsMsgHandler();
 }
 previousBtnLink.onclick=handlePreviousBtnClick;
